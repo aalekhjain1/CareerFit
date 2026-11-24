@@ -18,6 +18,25 @@ College students and freshers applying for internships and entry-level tech role
 
 ---
 
+## 📸 Application Screenshots
+
+### 1. Dashboard Overview
+![CareerFit Dashboard](assets/screenshots/01_dashboard.png)
+
+### 2. Dual Input Interface (Resume & Job Description)
+![Resume & Job Description Analyzer](assets/screenshots/02_input_screen.png)
+
+### 3. Compatibility Score & Results Dashboard
+![Results and Compatibility Score](assets/screenshots/03_results_score.png)
+
+### 4. Skill Gap Matrix & Filtering
+![Skills Analysis Matrix](assets/screenshots/04_skill_gap_analysis.png)
+
+### 5. Dynamic Recommendations & Prioritized Learning Roadmap
+![Improvement Recommendations](assets/screenshots/05_recommendations.png)
+
+---
+
 ## 🚀 Key Features
 
 ### 1. Modern SaaS Dashboard
