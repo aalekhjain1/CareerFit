@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareerFit — Resume & Job Readiness Analyzer</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+</head>
+<body>
+
+  <!-- Loading Animation Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <h3 class="loading-title">Analyzing Resume</h3>
+      <p class="loading-step-text" id="loadingStepText">Tokenizing text & matching skills dictionary...</p>
+      <div class="loading-progress-bar">
+        <div class="loading-progress-fill" id="loadingProgressBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- App Main Layout -->
+  <div class="app-container">
+
+    <!-- Mobile Backdrop -->
+    <div class="mobile-backdrop" id="mobileBackdrop" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:95;"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">CF</div>
+        <div>
+          <div class="brand-title">CareerFit</div>
+          <span class="brand-tag">AI & Prompt Eng</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a class="nav-link active" data-tab="dashboard">
+          <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a class="nav-link" data-tab="analyzer">
+          <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Resume Analyzer</span>
+        </a>
+
+        <a class="nav-link" data-tab="skills">
+          <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+          </svg>
+          <span>Skills Analysis</span>
+        </a>
+
+        <a class="nav-link" data-tab="suggestions">
+          <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <span>Improvement Suggestions</span>
+        </a>
+
+        <a class="nav-link" data-tab="history">
+          <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Analysis History</span>
+          <span class="nav-badge" id="historyNavBadge">0</span>
+        </a>
+
+        <a class="nav-link" data-tab="prompt-eng">
+          <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <span>AI Review Framework</span>
+          <span class="nav-tag-prompt">Prompt Eng</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <strong>Major Project Demonstration</strong>
+        <span>AI & Prompt Engineering</span>
+        <div style="margin-top:4px; font-size: 0.7rem; color:#64748b;">Client-side Engine • No External APIs</div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="main-wrapper">
+
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle navigation menu">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <div class="header-title-crumb" id="headerCrumb">Dashboard Overview</div>
+        </div>
+
+        <div class="header-right">
+          <div class="header-status-pill">
+            <span class="pulse-dot"></span>
+            <span>Analyzer Ready</span>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btnQuickSample">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            <span>Load Demo Sample</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content Area -->
+      <main class="content-area">
+
+        <!-- ================================================================
+             TAB 1: DASHBOARD
+             ================================================================ -->
+        <section class="tab-panel active" id="tab-dashboard">
+          <div class="page-header">
+            <h1 class="page-title">Welcome to CareerFit</h1>
+            <p class="page-subtitle">Resume & Job Readiness Analyzer designed for college students and freshers applying for internships and entry-level tech roles.</p>
+          </div>
+
+          <!-- Demo Notification Banner (Shown when showing initial demo sample) -->
+          <div class="demo-banner" id="demoBanner">
+            <div class="demo-banner-content">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Showing preview data from a sample demonstration resume. Click <strong>Analyze My Resume</strong> to evaluate your actual profile.</span>
+            </div>
+            <button class="btn btn-outline btn-sm" id="btnDismissDemo">Dismiss</button>
+          </div>
+
+          <!-- Top 4 Metric Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Total Resumes Analyzed</span>
+                <span class="stat-value" id="statTotalCount">0</span>
+                <span class="stat-subtext" id="statTotalSubtext">In local session history</span>
+              </div>
+              <div class="stat-icon primary">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Latest Compatibility</span>
+                <div style="display:flex; align-items:baseline; gap:0.5rem;">
+                  <span class="stat-value" id="statLatestScore">63%</span>
+                  <span class="badge badge-info" id="statLatestBadge">Moderate Match</span>
+                </div>
+                <span class="stat-subtext">Overall alignment index</span>
+              </div>
+              <div class="stat-icon success">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Matched Skills</span>
+                <span class="stat-value" id="statMatchedSkills" style="color:var(--color-success);">7</span>
+                <span class="stat-subtext">Present in job requirements</span>
+              </div>
+              <div class="stat-icon success">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Missing Skills</span>
+                <span class="stat-value" id="statMissingSkills" style="color:var(--color-warning);">3</span>
+                <span class="stat-subtext">Recommended learning areas</span>
+              </div>
+              <div class="stat-icon warning">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Dashboard Split (Latest Analysis Highlight + Quick Actions) -->
+          <div class="score-overview-grid" style="margin-bottom: 2rem;">
+            <!-- Left: Visual Score Representation -->
+            <div class="card score-main-card">
+              <div class="card-header" style="width:100%; margin-bottom:1rem; padding-bottom:0.5rem;">
+                <h3 class="card-title">Latest Analysis Summary</h3>
+                <span class="badge badge-secondary" id="dashCandidatePill">Rahul Sharma</span>
+              </div>
+
+              <!-- Circular SVG Score Indicator -->
+              <div class="gauge-container">
+                <svg class="gauge-svg" viewBox="0 0 100 100">
+                  <circle class="gauge-bg" cx="50" cy="50" r="40"/>
+                  <circle class="gauge-fill" id="dashGaugeCircle" cx="50" cy="50" r="40"
+                    stroke-dasharray="251.2"
+                    stroke-dashoffset="93"/>
+                </svg>
+                <div class="gauge-center">
+                  <span class="gauge-score" id="dashGaugeScore">63</span>
+                  <div class="gauge-max">out of 100</div>
+                </div>
+              </div>
+
+              <div class="score-verdict-title" id="dashVerdictTitle">Moderate Match</div>
+              <p style="font-size:0.85rem; color:var(--color-muted); margin-bottom:1rem;" id="dashRoleLabel">Target: Software Development Intern</p>
+
+              <div style="display:flex; gap:0.5rem; width:100%;">
+                <button class="btn btn-primary" style="flex:1;" id="btnDashNewAnalyze">Analyze My Resume</button>
+                <button class="btn btn-outline" id="btnDashViewFull">View Full Report</button>
+              </div>
+
+              <p class="disclaimer-note">
+                <strong>Educational Assessment:</strong> This score evaluates keyword alignment, completeness, and skill overlap. It is not an actual ATS algorithm or hiring guarantee.
+              </p>
+            </div>
+
+            <!-- Right: Scoring Breakdown Component & Quick Activity -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Score Breakdown & Weightage</h3>
+                <span style="font-size:0.8rem; color:var(--color-muted);">Deterministic Multi-Factor Scoring</span>
+              </div>
+
+              <div class="breakdown-list" style="margin-bottom: 1.5rem;">
+                <!-- 1. Skill Match (50 pts) -->
+                <div class="breakdown-item">
+                  <div class="breakdown-header">
+                    <span>1. Skill Match Weightage</span>
+                    <span id="dashScoreSkillMatch">38 / 50 pts (75%)</span>
+                  </div>
+                  <div class="breakdown-bar-bg">
+                    <div class="breakdown-bar-fill" id="dashBarSkillMatch" style="width: 76%; background-color: var(--color-accent);"></div>
+                  </div>
+                </div>
+
+                <!-- 2. Resume Completeness (20 pts) -->
+                <div class="breakdown-item">
+                  <div class="breakdown-header">
+                    <span>2. Section Completeness</span>
+                    <span id="dashScoreCompleteness">16 / 20 pts</span>
+                  </div>
+                  <div class="breakdown-bar-bg">
+                    <div class="breakdown-bar-fill" id="dashBarCompleteness" style="width: 80%; background-color: var(--color-success);"></div>
+                  </div>
+                </div>
+
+                <!-- 3. Keyword Match (20 pts) -->
+                <div class="breakdown-item">
+                  <div class="breakdown-header">
+                    <span>3. Keyword Alignment</span>
+                    <span id="dashScoreKeyword">16 / 20 pts</span>
+                  </div>
+                  <div class="breakdown-bar-bg">
+                    <div class="breakdown-bar-fill" id="dashBarKeyword" style="width: 80%; background-color: #6366f1;"></div>
+                  </div>
+                </div>
+
+                <!-- 4. Resume Quality (10 pts) -->
+                <div class="breakdown-item">
+                  <div class="breakdown-header">
+                    <span>4. Quality, Contact & Metrics</span>
+                    <span id="dashScoreQuality">8 / 10 pts</span>
+                  </div>
+                  <div class="breakdown-bar-bg">
+                    <div class="breakdown-bar-fill" id="dashBarQuality" style="width: 80%; background-color: var(--color-warning);"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="background-color:var(--color-bg-app); border-radius:var(--radius-md); padding:1rem; border:1px solid var(--color-border);">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem;">
+                  <strong style="font-size:0.88rem; color:var(--color-primary);">Quick Actions</strong>
+                  <span style="font-size:0.75rem; color:var(--color-muted);">Zero API cost</span>
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                  <button class="btn btn-outline btn-sm" id="btnQuickNavSkills">Inspect Skills Match</button>
+                  <button class="btn btn-outline btn-sm" id="btnQuickNavSuggestions">View Recommendations</button>
+                  <button class="btn btn-outline btn-sm" id="btnQuickNavPrompt">AI Review Prompt</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Analyses History Preview on Dashboard -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Recent Activity</h3>
+              <button class="btn btn-outline btn-sm" id="btnDashViewAllHistory">View All History</button>
+            </div>
+            <div class="table-responsive">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Date / Time</th>
+                    <th>Candidate</th>
+                    <th>Target Role</th>
+                    <th>Score</th>
+                    <th>Skills Match</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dashHistoryTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 2: RESUME ANALYZER (INPUT & ENGINE)
+             ================================================================ -->
+        <section class="tab-panel" id="tab-analyzer">
+          <div class="page-header">
+            <h1 class="page-title">Resume & Job Description Analyzer</h1>
+            <p class="page-subtitle">Paste your resume content and the job description to run precision skill extraction, section validation, and compatibility scoring.</p>
+          </div>
+
+          <!-- Alert error message for missing inputs -->
+          <div class="alert-box" id="analyzerAlertBox">
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span id="analyzerAlertText">Please enter both your Resume and the Job Description to perform analysis.</span>
+          </div>
+
+          <!-- Two-Column Analyzer Form -->
+          <div class="analyzer-form-grid" style="margin-top:1rem;">
+            <!-- Column 1: Resume Input -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  <span>1. Candidate Resume</span>
+                </h3>
+                <span class="badge badge-secondary">Required</span>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputCandidateName">
+                  <span>Candidate Name</span>
+                  <span class="optional">(Optional)</span>
+                </label>
+                <input type="text" id="inputCandidateName" class="input-control" placeholder="e.g. Rahul Sharma">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputTargetRole">
+                  <span>Target Job Role</span>
+                  <span class="optional">(Recommended)</span>
+                </label>
+                <input type="text" id="inputTargetRole" class="input-control" placeholder="e.g. Software Development Intern">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputResumeText">
+                  <span>Resume Content</span>
+                  <span class="char-counter" id="resumeCharCounter">0 words</span>
+                </label>
+                <textarea id="inputResumeText" class="input-control textarea-control" placeholder="Paste your complete resume here (Education, Skills, Projects, Experience, Tools, Contact information)..."></textarea>
+              </div>
+
+              <div class="form-card-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="btnLoadSampleResume">
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  <span>Load Sample Resume</span>
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnClearResume" style="color:var(--color-danger-text);">Clear</button>
+              </div>
+            </div>
+
+            <!-- Column 2: Job Description Input -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                  <span>2. Target Job Description</span>
+                </h3>
+                <span class="badge badge-secondary">Required</span>
+              </div>
+
+              <div class="form-group" style="min-height: 52px; display:flex; align-items:flex-end;">
+                <p style="font-size:0.84rem; color:var(--color-muted);">Paste the complete job posting including required skills, technologies, qualifications, and developer responsibilities.</p>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputJdText">
+                  <span>Job Description Requirements</span>
+                  <span class="char-counter" id="jdCharCounter">0 words</span>
+                </label>
+                <textarea id="inputJdText" class="input-control textarea-control" placeholder="Paste the job description or internship requirements here (e.g. Python, JavaScript, React, SQL, Git, Data Structures, Problem Solving, REST APIs)..." style="min-height: 310px;"></textarea>
+              </div>
+
+              <div class="form-card-actions">
+                <button type="button" class="btn btn-outline btn-sm" id="btnLoadSampleJd">
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  <span>Load Sample Job Description</span>
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" id="btnClearJd" style="color:var(--color-danger-text);">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Analyze Action Row -->
+          <div class="main-analyze-row">
+            <button class="btn btn-primary btn-lg" id="btnRunAnalyze">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span>Analyze Resume</span>
+            </button>
+            <span style="font-size:0.8rem; color:var(--color-muted);">Runs instantaneously in browser via client-side regex tokenization</span>
+          </div>
+
+          <!-- Live Results Section (Appears after analysis) -->
+          <div class="results-wrapper" id="liveResultsContainer" style="display:none;">
+            <!-- Header Banner -->
+            <div class="results-header-banner">
+              <div class="results-meta">
+                <div style="font-size:0.8rem; text-transform:uppercase; color:#93c5fd; font-weight:600; letter-spacing:0.05em;">Analysis Complete</div>
+                <h2 id="resBannerCandidate">Rahul Sharma — Software Development Intern</h2>
+                <p id="resBannerTimestamp">Analyzed on Just Now</p>
+              </div>
+              <div class="results-quick-nav">
+                <button class="btn btn-outline btn-sm" style="color:#ffffff; border-color:rgba(255,255,255,0.3);" id="btnJumpToSkills">Deep Skills Matrix</button>
+                <button class="btn btn-outline btn-sm" style="color:#ffffff; border-color:rgba(255,255,255,0.3);" id="btnJumpToSuggestions">Improvement Roadmap</button>
+              </div>
+            </div>
+
+            <!-- Score Overview & Gauge -->
+            <div class="score-overview-grid">
+              <div class="card score-main-card">
+                <div class="gauge-container">
+                  <svg class="gauge-svg" viewBox="0 0 100 100">
+                    <circle class="gauge-bg" cx="50" cy="50" r="40"/>
+                    <circle class="gauge-fill" id="resGaugeCircle" cx="50" cy="50" r="40"
+                      stroke-dasharray="251.2"
+                      stroke-dashoffset="55"/>
+                  </svg>
+                  <div class="gauge-center">
+                    <span class="gauge-score" id="resScoreNum">78</span>
+                    <div class="gauge-max">out of 100</div>
+                  </div>
+                </div>
+
+                <div class="score-verdict-title" id="resScoreVerdict">Moderate Match</div>
+                <span class="badge badge-info" id="resScoreBadge">78 / 100</span>
+
+                <p class="disclaimer-note">
+                  <strong>Important Notice:</strong> This is an educational compatibility score for student preparation, not an official ATS score or a guarantee of employment.
+                </p>
+              </div>
+
+              <!-- Score Breakdown & Metric Badges -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Transparent Scoring Breakdown</h3>
+                  <span class="badge badge-secondary">4 Weighted Factors</span>
+                </div>
+
+                <div class="breakdown-list">
+                  <div class="breakdown-item">
+                    <div class="breakdown-header">
+                      <span>1. Skill Match Weight (50 pts max)</span>
+                      <strong id="resBreakSkill">38 / 50 pts (75% match)</strong>
+                    </div>
+                    <div class="breakdown-bar-bg">
+                      <div class="breakdown-bar-fill" id="resBarSkill" style="width:76%; background-color:var(--color-accent);"></div>
+                    </div>
+                  </div>
+
+                  <div class="breakdown-item">
+                    <div class="breakdown-header">
+                      <span>2. Resume Completeness (20 pts max)</span>
+                      <strong id="resBreakComplete">16 / 20 pts (4 sections present)</strong>
+                    </div>
+                    <div class="breakdown-bar-bg">
+                      <div class="breakdown-bar-fill" id="resBarComplete" style="width:80%; background-color:var(--color-success);"></div>
+                    </div>
+                  </div>
+
+                  <div class="breakdown-item">
+                    <div class="breakdown-header">
+                      <span>3. Keyword Alignment (20 pts max)</span>
+                      <strong id="resBreakKeyword">16 / 20 pts</strong>
+                    </div>
+                    <div class="breakdown-bar-bg">
+                      <div class="breakdown-bar-fill" id="resBarKeyword" style="width:80%; background-color:#6366f1;"></div>
+                    </div>
+                  </div>
+
+                  <div class="breakdown-item">
+                    <div class="breakdown-header">
+                      <span>4. Quality, Contact & Achievements (10 pts max)</span>
+                      <strong id="resBreakQuality">8 / 10 pts</strong>
+                    </div>
+                    <div class="breakdown-bar-bg">
+                      <div class="breakdown-bar-fill" id="resBarQuality" style="width:80%; background-color:var(--color-warning);"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skills Summary Clusters -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Skills Overview</h3>
+                <div style="display:flex; gap:0.5rem;">
+                  <span class="badge badge-success" id="resCountMatchedBadge">6 Matched</span>
+                  <span class="badge badge-warning" id="resCountMissingBadge">2 Missing</span>
+                  <span class="badge badge-info" id="resCountAddBadge">2 Additional</span>
+                </div>
+              </div>
+
+              <div style="margin-bottom:1rem;">
+                <div style="font-size:0.85rem; font-weight:600; color:var(--color-success-text); margin-bottom:0.25rem;">Matched Skills (In both Resume & Job Description):</div>
+                <div class="skills-tags-cluster" id="resMatchedCluster"></div>
+              </div>
+
+              <div style="margin-bottom:1rem;">
+                <div style="font-size:0.85rem; font-weight:600; color:var(--color-warning-text); margin-bottom:0.25rem;">Missing Skills (Required by Job, not found in Resume):</div>
+                <div class="skills-tags-cluster" id="resMissingCluster"></div>
+              </div>
+
+              <div>
+                <div style="font-size:0.85rem; font-weight:600; color:var(--color-info-text); margin-bottom:0.25rem;">Additional Skills (Possessed by Candidate, not in Job Description):</div>
+                <div class="skills-tags-cluster" id="resAdditionalCluster"></div>
+              </div>
+            </div>
+
+            <!-- Resume Section Analysis -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Resume Section Presence</h3>
+                <span style="font-size:0.8rem; color:var(--color-muted);">Standard ATS Section Detection</span>
+              </div>
+              <div class="sections-check-grid" id="resSectionsGrid"></div>
+            </div>
+
+            <!-- Resume Quality Checklist -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Resume Quality & Formatting Checklist</h3>
+                <span class="badge badge-secondary">7 Standard Checks</span>
+              </div>
+              <div class="quality-checklist-list" id="resQualityChecklist"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 3: SKILLS ANALYSIS (DEEP DIVE)
+             ================================================================ -->
+        <section class="tab-panel" id="tab-skills">
+          <div class="page-header">
+            <h1 class="page-title">Skills Analysis & Matrix</h1>
+            <p class="page-subtitle">Granular comparison between candidate competencies and target employer requirements across technical categories.</p>
+          </div>
+
+          <!-- Skills Metric Counters -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Job Required Skills</span>
+                <span class="stat-value" id="skillTabJdCount">8</span>
+                <span class="stat-subtext">Identified in Job Description</span>
+              </div>
+              <div class="stat-icon primary">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Matching Skills</span>
+                <span class="stat-value" id="skillTabMatchCount" style="color:var(--color-success);">6</span>
+                <span class="stat-subtext">Overlap verified</span>
+              </div>
+              <div class="stat-icon success">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Missing Skills</span>
+                <span class="stat-value" id="skillTabMissingCount" style="color:var(--color-warning);">2</span>
+                <span class="stat-subtext">Actionable skill gaps</span>
+              </div>
+              <div class="stat-icon warning">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-content">
+                <span class="stat-label">Additional Skills</span>
+                <span class="stat-value" id="skillTabAdditionalCount" style="color:var(--color-info);">2</span>
+                <span class="stat-subtext">Candidate bonus skills</span>
+              </div>
+              <div class="stat-icon primary">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Breakdown Filter -->
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title">Filter by Category</h3>
+              <div style="display:flex; flex-wrap:wrap; gap:0.4rem;" id="skillFilterButtons">
+                <button class="btn btn-primary btn-sm active" data-filter="all">All Skills</button>
+                <button class="btn btn-outline btn-sm" data-filter="Programming">Programming</button>
+                <button class="btn btn-outline btn-sm" data-filter="Web Development">Web Dev</button>
+                <button class="btn btn-outline btn-sm" data-filter="Tools">Tools</button>
+                <button class="btn btn-outline btn-sm" data-filter="Database">Database</button>
+                <button class="btn btn-outline btn-sm" data-filter="Core CS">Core CS</button>
+                <button class="btn btn-outline btn-sm" data-filter="Other">Soft Skills</button>
+              </div>
+            </div>
+
+            <!-- Detailed Skills Matrix Grid -->
+            <div class="table-responsive">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Skill Name</th>
+                    <th>Category</th>
+                    <th>Required in Job</th>
+                    <th>Found in Resume</th>
+                    <th>Status</th>
+                    <th>Skill Description</th>
+                  </tr>
+                </thead>
+                <tbody id="skillMatrixTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 4: IMPROVEMENT SUGGESTIONS
+             ================================================================ -->
+        <section class="tab-panel" id="tab-suggestions">
+          <div class="page-header">
+            <h1 class="page-title">Improvement Recommendations</h1>
+            <p class="page-subtitle">Actionable, evidence-based recommendations generated dynamically from your resume analysis and missing job requirements.</p>
+          </div>
+
+          <!-- Dynamic Recommendations List -->
+          <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+              <h3 class="card-title">Key Action Items for Improvement</h3>
+              <span class="badge badge-secondary" id="recCountBadge">Recommendations</span>
+            </div>
+            <div class="recs-container" id="recommendationsList">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Prioritized Learning Roadmap -->
+          <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+              <h3 class="card-title">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Recommended Learning Priorities</span>
+              </h3>
+              <span style="font-size:0.8rem; color:var(--color-muted);">Targeted study roadmap for missing skills</span>
+            </div>
+            <div class="learning-roadmap-grid" id="learningRoadmapGrid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Keyword Analysis -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Industry Terminology & Keyword Analysis</h3>
+              <span style="font-size:0.8rem; color:var(--color-muted);">Domain terminology from Job Description</span>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;" id="keywordAnalysisGrid">
+              <div>
+                <div style="font-size:0.85rem; font-weight:600; color:var(--color-success-text); margin-bottom:0.5rem;">Present in Resume:</div>
+                <div class="skills-tags-cluster" id="kwMatchedTags"></div>
+              </div>
+              <div>
+                <div style="font-size:0.85rem; font-weight:600; color:var(--color-warning-text); margin-bottom:0.5rem;">Missing from Resume:</div>
+                <div class="skills-tags-cluster" id="kwMissingTags"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 5: ANALYSIS HISTORY
+             ================================================================ -->
+        <section class="tab-panel" id="tab-history">
+          <div class="page-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+            <div>
+              <h1 class="page-title">Analysis History</h1>
+              <p class="page-subtitle">Review previous resume evaluations stored locally in your browser (LocalStorage).</p>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btnClearAllHistory">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              <span>Clear All History</span>
+            </button>
+          </div>
+
+          <!-- History Table Card -->
+          <div class="card">
+            <div class="table-responsive">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Candidate Name</th>
+                    <th>Target Role</th>
+                    <th>Compatibility Score</th>
+                    <th>Matched Skills</th>
+                    <th>Missing Skills</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Empty State Container -->
+            <div class="empty-state" id="historyEmptyState" style="display:none;">
+              <div class="empty-icon">
+                <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 class="empty-title">No Analysis History Found</h3>
+              <p class="empty-text">You haven't run any resume evaluations yet. Paste a resume in the Analyzer or load the demo sample to get started.</p>
+              <button class="btn btn-primary" id="btnEmptyStateAnalyze">Start New Analysis</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================
+             TAB 6: AI REVIEW FRAMEWORK (PROMPT ENGINEERING SHOWCASE)
+             ================================================================ -->
+        <section class="tab-panel" id="tab-prompt-eng">
+          <!-- Hero Explanation Card -->
+          <div class="prompt-hero-card">
+            <span class="prompt-hero-badge">AI & Prompt Engineering Academic Project</span>
+            <h1 class="prompt-hero-title">AI Review Framework & Prompt Architecture</h1>
+            <p class="prompt-hero-desc">
+              Demonstrating the principles of structured prompt engineering for career readiness evaluation. 
+              This section illustrates how modern Large Language Models (LLMs) can be guided with precision constraints, 
+              preventing hallucinations and enforcing deterministic evaluation criteria.
+            </p>
+          </div>
+
+          <!-- The 5 Pillars of Prompt Engineering -->
+          <h2 style="font-size:1.25rem; font-weight:700; margin-bottom:1rem; color:var(--color-primary);">
+            The 5 Pillars of Technical Prompt Engineering
+          </h2>
+          <div class="pillars-grid">
+            <div class="pillar-card">
+              <div class="pillar-tag">Pillar 1</div>
+              <div class="pillar-name">ROLE</div>
+              <div class="pillar-desc">Assigns domain persona & expertise (e.g. Senior Technical Recruiter) to establish evaluation standards and tone.</div>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-tag">Pillar 2</div>
+              <div class="pillar-name">CONTEXT</div>
+              <div class="pillar-desc">Frames the candidate level (college fresher vs senior) so recommendations remain realistic and feasible.</div>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-tag">Pillar 3</div>
+              <div class="pillar-name">TASK</div>
+              <div class="pillar-desc">Defines precise objectives: skill extraction, gap identification, section audit, and prioritization.</div>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-tag">Pillar 4</div>
+              <div class="pillar-name">OUTPUT FORMAT</div>
+              <div class="pillar-desc">Enforces structured numbering, JSON, or markdown headers for clean, programmatic readability.</div>
+            </div>
+
+            <div class="pillar-card">
+              <div class="pillar-tag">Pillar 5</div>
+              <div class="pillar-name">CONSTRAINTS</div>
+              <div class="pillar-desc">Negative guards: prevents inventing skills, hallucinating experience, or vague motivational fluff.</div>
+            </div>
+          </div>
+
+          <!-- Structured Prompt Card with Copy Button -->
+          <div class="prompt-card">
+            <div class="prompt-card-header">
+              <div class="prompt-card-title">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>Structured Resume Review Prompt (Production Standard)</span>
+              </div>
+              <button class="btn btn-outline btn-sm" id="btnCopyPrompt" style="color:#ffffff; border-color:#475569;">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                </svg>
+                <span id="copyPromptBtnText">Copy Prompt</span>
+              </button>
+            </div>
+            <div class="code-container" id="promptTextContent"><span class="code-keyword">ROLE:</span>
+Act as a professional resume reviewer and entry-level technical recruiter.
+
+<span class="code-keyword">CONTEXT:</span>
+Analyze a college student's resume for a specific internship/job role. The candidate may have limited professional experience.
+
+<span class="code-keyword">TASK:</span>
+Evaluate the resume against the job description, identify strengths, missing skills, weak sections and improvements.
+
+<span class="code-keyword">OUTPUT FORMAT:</span>
+1. Overall assessment
+2. Relevant skills
+3. Missing skills
+4. Resume weaknesses
+5. Improvement suggestions
+6. Learning priorities
+
+<span class="code-keyword">CONSTRAINTS:</span>
+- Do not invent experience, achievements or skills.
+- Make realistic recommendations for students.
+- Clearly differentiate possessed skills from skills that need learning.
+- Use clear, actionable language.</div>
+          </div>
+
+          <!-- Prompt Evolution Comparison -->
+          <div class="evolution-card">
+            <h3 class="card-title" style="margin-bottom:0.75rem;">Interactive Prompt Evolution: From Basic to Engineered</h3>
+            <p style="font-size:0.88rem; color:var(--color-muted); margin-bottom:1.25rem;">
+              Compare how progressively adding architectural constraints transforms generic LLM output into an objective, recruiter-grade analysis.
+            </p>
+
+            <div class="evolution-tabs">
+              <button class="evolution-tab-btn active" data-evo="basic">1. Basic Prompt</button>
+              <button class="evolution-tab-btn" data-evo="structured">2. Structured Prompt</button>
+              <button class="evolution-tab-btn" data-evo="improved">3. Improved / Production Prompt</button>
+            </div>
+
+            <!-- Pane 1: Basic -->
+            <div class="evolution-pane active" id="pane-basic">
+              <div class="prompt-snippet-box">"Review this resume and tell me if it's good for a software job."</div>
+              <div class="evolution-analysis">
+                <div class="analysis-point-card point-danger">
+                  <strong>Critical Weaknesses & Hallucination Risks:</strong>
+                  <ul style="margin-top:6px; padding-left:18px; line-height:1.5;">
+                    <li>Zero role framing: LLM often acts as a polite cheerleader rather than a recruiter.</li>
+                    <li>No job description context: Cannot calculate match percentage or identify specific missing skills.</li>
+                    <li>Unpredictable output format: Returns unstructured paragraphs that cannot be compared across candidates.</li>
+                  </ul>
+                </div>
+                <div class="analysis-point-card point-success">
+                  <strong>Prompt Engineering Diagnosis:</strong>
+                  <p style="margin-top:6px; line-height:1.5;">Lacks Role, Context, Constraints, and Target benchmark. Susceptible to sycophancy (telling the user what they want to hear).</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane 2: Structured -->
+            <div class="evolution-pane" id="pane-structured">
+              <div class="prompt-snippet-box">"Act as a recruiter. Review this student resume against this job description. List matching skills, missing skills, and give tips to improve."</div>
+              <div class="evolution-analysis">
+                <div class="analysis-point-card point-success">
+                  <strong>Key Improvements:</strong>
+                  <ul style="margin-top:6px; padding-left:18px; line-height:1.5;">
+                    <li>Defines persona (Recruiter) and dual inputs (Resume + Job Description).</li>
+                    <li>Directs attention toward matching vs missing skills.</li>
+                  </ul>
+                </div>
+                <div class="analysis-point-card point-danger">
+                  <strong>Remaining Vulnerabilities:</strong>
+                  <p style="margin-top:6px; line-height:1.5;">No negative constraints. The model might invent work experience, recommend senior-level architectures unsuitable for students, or hallucinate skills.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pane 3: Improved -->
+            <div class="evolution-pane" id="pane-improved">
+              <div class="prompt-snippet-box">"ROLE: Technical Recruiter for freshers | CONTEXT: College student entry-level role | TASK: Cross-reference resume skills vs JD requirements | OUTPUT: 6-part numbered schema | CONSTRAINTS: Negative boundary preventing skill fabrication."</div>
+              <div class="evolution-analysis">
+                <div class="analysis-point-card point-success">
+                  <strong>Production Advantages:</strong>
+                  <ul style="margin-top:6px; padding-left:18px; line-height:1.5;">
+                    <li>Deterministic structure: Every candidate receives uniform evaluation headers.</li>
+                    <li>Zero skill fabrication: Explicit negative constraint stops hallucinated competencies.</li>
+                    <li>Targeted recommendations: Focuses on realistic student artifacts (GitHub, mini-projects, coursework).</li>
+                  </ul>
+                </div>
+                <div class="analysis-point-card point-success">
+                  <strong>Viva Presentation Highlight:</strong>
+                  <p style="margin-top:6px; line-height:1.5;">Demonstrates how Prompt Architecture transforms generative LLMs into reliable, reproducible evaluation tools.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Academic Viva Presentation Guide Card -->
+          <div class="viva-card">
+            <h3 class="viva-title">Viva & Project Defense Discussion Points</h3>
+            <p style="font-size:0.88rem; color:#1e3a8a;">
+              When presenting this major project to internal/external examiners, emphasize these core engineering principles:
+            </p>
+            <ul class="viva-list">
+              <li><strong>Client-Side Rule-Based Engine vs Generative AI:</strong> Explain that this web application uses high-precision regex boundary matching (`\b[Cc]\b` for C, lookahead for Java vs JavaScript) to guarantee 100% deterministic, zero-hallucination skill extraction without cloud API latency or ongoing costs.</li>
+              <li><strong>Prompt Architecture as a Software Layer:</strong> Explain how the Role-Context-Task-Output-Constraint (RCTOC) framework enforces deterministic JSON/Markdown schemas when interfacing with real-world LLMs.</li>
+              <li><strong>Ethical ATS Scoring Disclaimer:</strong> Commercial ATS systems do not simply compute a single percentage; they parse layout trees and keyword frequencies. CareerFit transparently decomposes scoring into Skill Match (50%), Completeness (20%), Keyword Alignment (20%), and Quality (10%) for student educational feedback.</li>
+            </ul>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules Loading in Order -->
+  <script src="js/analyzer.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
